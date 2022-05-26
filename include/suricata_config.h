@@ -1,8 +1,8 @@
 /*****************************************************************************
  *                                                                           *
- * \file logger.c                                                            *
+ * \file suricata_config.h                                                   *
  *                                                                           *
- * \brief Module to print log and debug messages to the console.             *
+ * \brief General configuration for Suricata firmware.                       *
  *                                                                           *
  * \author blackchacal <ribeiro.tonet@gmail.com>                             *
  * \date May 25, 2022                                                        *
@@ -12,32 +12,33 @@
  *                                                                           *
  *****************************************************************************/
 
-/*****************************************************************************
- * Includes                                                                  *
- *****************************************************************************/
+#ifndef _SURICATA_CONFIG_H
+#define _SURICATA_CONFIG_H
 
-/* --- Arduino libraries -------------------- */
-#include <Arduino.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-/* --- Custom modules -------------------- */
-#include "suricata_config.h"
-#include "logger.h"
 
 /*****************************************************************************
- * Code                                                                      *
+ * Configuration Macros                                                      *
  *****************************************************************************/
 
-void setup() {
-    LOG_INIT();
-}
+/* --- Logger Module ---------------------------------------- */ 
 
-void loop() {
-    LOG_INFO("SETUP", "Start SETUP: %d", 45);
-    delay(1000);
-    LOG_WARN("SETUP", "Start SETUP: %d", 10);
-    delay(1000);
-    LOG_DEBUG("SETUP", "Start SETUP: %d", 15);
-    delay(1000);
-    LOG_ERROR("SETUP", "Start SETUP: %d", 20);
-    delay(1000);
+#define LOGGER_EN                 1
+// #define LOG_INFO_EN               1
+// #define LOG_WARN_EN               1
+// #define LOG_DEBUG_EN              1
+// #define LOG_ERROR_EN              1
+// #define SERIAL_SPEED              9600
+// #define MAX_LOG_MSG_SIZE          512
+
+
+#ifdef __cplusplus
 }
+#endif
+
+#endif /* _SURICATA_CONFIG_H */
+
+/* end of file */
