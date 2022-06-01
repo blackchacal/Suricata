@@ -22,22 +22,55 @@
 /* --- Custom modules -------------------- */
 #include "suricata_config.h"
 #include "logger.h"
+#include "rbuffer.h"
+
+/*****************************************************************************
+ * Public Vars                                                               *
+ *****************************************************************************/
+
+/* --- Array Buffers ------------------- */
+
+uint8_t data_buf[DATA_BUFFER_SIZE] = {0};
+
+/* --- Module vars --------------------- */
+
+rbuffer_t data_rbuffer;
+
+/*****************************************************************************
+ * Function Prototypes                                                       *
+ *****************************************************************************/
 
 /*****************************************************************************
  * Code                                                                      *
  *****************************************************************************/
 
-void setup() {
+void setup() 
+{
+    int err = ERR_OK;
+
+    delay(5000);
+    /* Init log system */
     LOG_INIT();
+
+    LOG_INFO("SETUP", "> ----- Suricata ----- <\n");
+    LOG_INFO("SETUP", "FW Version: %d.%d.%d", FW_MAJOR, FW_MINOR, FW_PATCH);
+    LOG_INFO("SETUP", "HW Version: %d.%d\n", HW_MAJOR, HW_MINOR);
+    LOG_INFO("SETUP", "> System init...\n");
+
+    /* Init ring buffer */
+    LOG_INFO("SETUP:RBUFFER", "> Init Data Ring Buffer...");
+    err = rbuffer_init(&data_rbuffer, data_buf, DATA_BUFFER_SIZE);
+    if (err != ERR_OK)
+    {
+        LOG_ERROR_LOCK("SETUP:RBUFFER", ">> Data Ring Buffer init error: %d", err);
+    }
+    LOG_INFO("SETUP:RBUFFER", ">> Data Ring Buffer initialized.");
 }
 
-void loop() {
-    LOG_INFO("SETUP", "Start SETUP: %d", 45);
-    delay(1000);
-    LOG_WARN("SETUP", "Start SETUP: %d", 10);
-    delay(1000);
-    LOG_DEBUG("SETUP", "Start SETUP: %d", 15);
-    delay(1000);
-    LOG_ERROR("SETUP", "Start SETUP: %d", 20);
-    delay(1000);
+void loop() 
+{
 }
+
+/* --- Private functions --------------------------------------------------- */
+
+/* end of file */
