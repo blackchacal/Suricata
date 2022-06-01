@@ -71,6 +71,8 @@ void LOG_DEBUG (const char * tag, const char * fmt, ...);
 
 void LOG_ERROR (const char * tag, const char * fmt, ...);
 
+void LOG_ERROR_LOCK (const char * tag, const char * fmt, ...);
+
 #ifdef __cplusplus
 }
 #endif
