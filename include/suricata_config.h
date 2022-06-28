@@ -54,6 +54,13 @@ extern "C" {
 // #define SERIAL_SPEED              9600
 // #define MAX_LOG_MSG_SIZE          512
 
+/* --- LED Driver Module --------------------------------------------------- */
+
+#define LED_EN                    1
+#define LED_R_PIN                 11
+#define LED_G_PIN                 10
+#define LED_B_PIN                 9
+#define LED_TIMER                 TIMER_TC3 /* Check available timers */
 
 #ifdef __cplusplus
 }

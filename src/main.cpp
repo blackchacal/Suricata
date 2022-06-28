@@ -1,8 +1,8 @@
 /*****************************************************************************
  *                                                                           *
- * \file logger.c                                                            *
+ * \file main.cpp                                                            *
  *                                                                           *
- * \brief Module to print log and debug messages to the console.             *
+ * \brief Suricata main code.                                                *
  *                                                                           *
  * \author blackchacal <ribeiro.tonet@gmail.com>                             *
  * \date May 25, 2022                                                        *
@@ -23,6 +23,7 @@
 #include "suricata_config.h"
 #include "logger.h"
 #include "rbuffer.h"
+#include "led.h"
 
 /*****************************************************************************
  * Public Vars                                                               *
@@ -35,6 +36,7 @@ uint8_t data_buf[DATA_BUFFER_SIZE] = {0};
 /* --- Module vars --------------------- */
 
 rbuffer_t data_rbuffer;
+led_t rgb_led;
 
 /*****************************************************************************
  * Function Prototypes                                                       *
@@ -65,6 +67,28 @@ void setup()
         LOG_ERROR_LOCK("SETUP:RBUFFER", ">> Data Ring Buffer init error: %d", err);
     }
     LOG_INFO("SETUP:RBUFFER", ">> Data Ring Buffer initialized.");
+
+    LOG_INFO("SETUP:LED", "> Init LED driver...");
+    err = led_init(&rgb_led, LED_R_PIN, LED_G_PIN, LED_B_PIN);
+    if (err != ERR_OK)
+    {
+        LOG_ERROR_LOCK("SETUP:LED", ">> LED driver init error: %d", err);
+    }
+    LOG_INFO("SETUP:LED", ">> LED driver initialized.");
+
+    led_blink(&rgb_led, 1, 10, 255, 0, 0, 0, 255, 0);
+    delay(11000);
+
+    led_on(&rgb_led, 255, 0, 0);
+    delay(2000);
+    led_off(&rgb_led);
+    delay(2000);
+    led_on(&rgb_led, 0, 255, 0);
+    delay(2000);
+    led_on(&rgb_led, 0, 0, 255);
+    delay(2000);
+    led_off(&rgb_led);
+    LOG_INFO("SETUP:LED", ">> LED off.");
 }
 
 void loop() 
