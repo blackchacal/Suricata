@@ -50,6 +50,7 @@
 #endif
 
 #define LED_TIMER_INTERVAL_MS   (10L) /* 10 ms */
+#define LED_DELAY_DELTA_MS      (100)  /* 100 ms */
 
 /*****************************************************************************
  * Static Data                                                               *
@@ -58,7 +59,9 @@
 SAMDTimer ITimerLED(LED_TIMER);
 
 uint8_t blink_timer_cnt = 0;
+uint8_t fade_timer_cnt = 0;
 uint8_t nreps_cnt = 0;
+float fade_lvl = 0;
 
 /*****************************************************************************
  * Public Data                                                               *
@@ -84,6 +87,7 @@ void TimerHandler0(void);
 int led_init (led_t * rgb_led, uint8_t red_pin, uint8_t green_pin, uint8_t blue_pin)
 {
     int err = ERR_OK;
+#if LED_EN == 1    
 
     if (rgb_led == NULL)
     {
@@ -108,6 +112,10 @@ int led_init (led_t * rgb_led, uint8_t red_pin, uint8_t green_pin, uint8_t blue_
         rgb_led->nreps = 0;
         rgb_led->is_blink = false;
         rgb_led->blink_ch = 0;
+        rgb_led->fade_time = 0;
+        rgb_led->is_fade = false;
+        rgb_led->fade_type = FADE_IN;
+        rgb_led->fade_step = 0.01;
 
         rgb_led->r_pin = red_pin;
         rgb_led->g_pin = green_pin;
@@ -125,7 +133,7 @@ int led_init (led_t * rgb_led, uint8_t red_pin, uint8_t green_pin, uint8_t blue_
             err = ERR_LED_FAILED_INIT_TIMER;
         }
     }
-
+#endif
     return err;
 }
 
@@ -135,7 +143,7 @@ int led_init (led_t * rgb_led, uint8_t red_pin, uint8_t green_pin, uint8_t blue_
 int led_on (led_t * rgb_led, uint8_t red_ch, uint8_t green_ch, uint8_t blue_ch)
 {
     int err = ERR_OK;
-
+#if LED_EN == 1
     if (rgb_led == NULL)
     {
         err = ERR_LED_NULL_POINTER;
@@ -146,7 +154,7 @@ int led_on (led_t * rgb_led, uint8_t red_ch, uint8_t green_ch, uint8_t blue_ch)
         analogWrite(rgb_led->g_pin, led_convert_ch_val(green_ch));
         analogWrite(rgb_led->b_pin, led_convert_ch_val(blue_ch));
     }
-
+#endif
     return err;
 }
 
@@ -156,7 +164,7 @@ int led_on (led_t * rgb_led, uint8_t red_ch, uint8_t green_ch, uint8_t blue_ch)
 int led_off (led_t * rgb_led)
 {
     int err = ERR_OK;
-
+#if LED_EN == 1
     if (rgb_led == NULL)
     {
         err = ERR_LED_NULL_POINTER;
@@ -168,6 +176,7 @@ int led_off (led_t * rgb_led)
         rgb_led->b_ch = DUTY_0;
 
         rgb_led->is_blink = false;
+        rgb_led->is_fade = false;
         
         /**
          * Reset pin mode to disable PWM timers.
@@ -182,7 +191,7 @@ int led_off (led_t * rgb_led)
         digitalWrite(rgb_led->g_pin, CLR_LED);
         digitalWrite(rgb_led->b_pin, CLR_LED);
     }
-
+#endif
     return err;
 }
 
@@ -194,7 +203,7 @@ int led_blink (led_t * rgb_led, uint16_t freq, uint8_t nreps, uint8_t red_ch, ui
               uint8_t blue_ch, uint8_t red_ch_2, uint8_t green_ch_2, uint8_t blue_ch_2)
 {
     int err = ERR_OK;
-
+#if LED_EN == 1
     if (rgb_led == NULL)
     {
         err = ERR_LED_NULL_POINTER;
@@ -204,6 +213,7 @@ int led_blink (led_t * rgb_led, uint16_t freq, uint8_t nreps, uint8_t red_ch, ui
         rgb_led->freq = freq;
         rgb_led->nreps = nreps;
         rgb_led->is_blink = true;
+        rgb_led->is_fade = false;
 
         rgb_led->r_ch = red_ch;
         rgb_led->g_ch = green_ch;
@@ -212,17 +222,90 @@ int led_blink (led_t * rgb_led, uint16_t freq, uint8_t nreps, uint8_t red_ch, ui
         rgb_led->g_ch_2 = green_ch_2;
         rgb_led->b_ch_2 = blue_ch_2;
     }
+#endif
+    return err;
+}
 
+/**
+ * @brief Blinks the LED with the two choosen colors for a number of repetitions
+ * and frequency, and blocks execution until blink is complete.
+ */
+int led_blink_block (led_t * rgb_led, uint16_t freq, uint8_t nreps, uint8_t red_ch, uint8_t green_ch, 
+              uint8_t blue_ch, uint8_t red_ch_2, uint8_t green_ch_2, uint8_t blue_ch_2)
+{
+    int err = ERR_OK;
+#if LED_EN == 1
+    if (rgb_led == NULL)
+    {
+        err = ERR_LED_NULL_POINTER;
+    }
+    else
+    {
+        err = led_blink(rgb_led, freq, nreps, red_ch, green_ch, blue_ch, red_ch_2, green_ch_2, blue_ch_2);
+        delay((uint16_t)((1.0 / (float)freq) * (float)nreps * 1000.0) + LED_DELAY_DELTA_MS);
+    }
+#endif
     return err;
 }              
 
 /**
- * @brief Processes LED blink timings.
+ * @brief Turn on/off the LED with a fade effect.
  */
-int led_process (led_t * rgb_led)
+int led_fade (led_t * rgb_led, uint16_t time, fade_type_t fade_type, uint8_t red_ch, uint8_t green_ch, 
+              uint8_t blue_ch)
 {
+    int err = ERR_OK;
+#if LED_EN == 1
+    if (rgb_led == NULL)
+    {
+        err = ERR_LED_NULL_POINTER;
+    }
+    else
+    {
+        rgb_led->fade_time = time;
+        rgb_led->is_fade = true;
+        rgb_led->fade_type = fade_type;
+        rgb_led->fade_step = (float)(1.0 / (100.0 * time));
+        rgb_led->is_blink = false;
 
+        if (fade_type == FADE_IN)
+        {
+            fade_lvl = 0;
+        }
+        else
+        {
+            fade_lvl = 1;
+        }
+
+        rgb_led->r_ch = red_ch;
+        rgb_led->g_ch = green_ch;
+        rgb_led->b_ch = blue_ch;
+    }
+#endif
+    return err;
 }
+
+/**
+ * @brief Turn on the LED with a fade in effect, and blocks until effect is 
+ * complete.
+ */
+int led_fade_block (led_t * rgb_led, uint16_t time, fade_type_t fade_type, uint8_t red_ch, uint8_t green_ch, 
+              uint8_t blue_ch)
+{
+    int err = ERR_OK;
+#if LED_EN == 1
+    if (rgb_led == NULL)
+    {
+        err = ERR_LED_NULL_POINTER;
+    }
+    else
+    {
+        err = led_fade(rgb_led, time, fade_type, red_ch, green_ch, blue_ch);
+        delay(time * 1000 + LED_DELAY_DELTA_MS);
+    }
+#endif
+    return err;
+}                  
 
 /*****************************************************************************
  * Private Functions                                                         *
@@ -243,6 +326,7 @@ uint8_t led_convert_ch_val (uint8_t ch_val)
 
 void TimerHandler0(void)
 {
+#if LED_EN == 1
     if (rgb_led.is_blink)
     {
         /* Timer is @100 Hz. Cnt = (100 / desired_blink_freq) / 2 */
@@ -271,5 +355,39 @@ void TimerHandler0(void)
             }
         }
     }
+    else if (rgb_led.is_fade)
+    {
+        /* Timer is @100 Hz */
+        if (rgb_led.fade_type == FADE_IN)
+        {
+            led_on(&rgb_led, (uint8_t)((float)rgb_led.r_ch * fade_lvl), 
+                    (uint8_t)((float)rgb_led.g_ch * fade_lvl), 
+                    (uint8_t)((float)rgb_led.b_ch * fade_lvl));
+            fade_lvl += rgb_led.fade_step;
+
+            if (fade_lvl > 1.001)
+            {
+                fade_lvl = 0;
+                fade_timer_cnt = 0;
+                rgb_led.is_fade = false;
+            }
+        }
+        else
+        {
+            led_on(&rgb_led, (uint8_t)((float)rgb_led.r_ch * fade_lvl), 
+                    (uint8_t)((float)rgb_led.g_ch * fade_lvl), 
+                    (uint8_t)((float)rgb_led.b_ch * fade_lvl));
+            fade_lvl -= rgb_led.fade_step;
+
+            if (fade_lvl < 0.001)
+            {
+                fade_lvl = 1;
+                fade_timer_cnt = 0;
+                led_off(&rgb_led);
+            }
+        }
+    }
     blink_timer_cnt++;
+    fade_timer_cnt++;
+#endif
 }

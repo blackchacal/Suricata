@@ -75,20 +75,7 @@ void setup()
         LOG_ERROR_LOCK("SETUP:LED", ">> LED driver init error: %d", err);
     }
     LOG_INFO("SETUP:LED", ">> LED driver initialized.");
-
-    led_blink(&rgb_led, 1, 10, 255, 0, 0, 0, 255, 0);
-    delay(11000);
-
-    led_on(&rgb_led, 255, 0, 0);
-    delay(2000);
-    led_off(&rgb_led);
-    delay(2000);
-    led_on(&rgb_led, 0, 255, 0);
-    delay(2000);
-    led_on(&rgb_led, 0, 0, 255);
-    delay(2000);
-    led_off(&rgb_led);
-    LOG_INFO("SETUP:LED", ">> LED off.");
+    led_blink_block(&rgb_led, 10, 10, 255, 0, 0, 0, 0, 0);
 }
 
 void loop() 
