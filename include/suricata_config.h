@@ -62,6 +62,14 @@ extern "C" {
 #define LED_B_PIN                 9
 #define LED_TIMER                 TIMER_TC3 /* Check available timers */
 
+/* --- LDR Driver Module --------------------------------------------------- */
+
+#define LDR_EN                    1
+#define LDR_PIN                   15
+#define LDR_ADC_RESOLUTION        16 /* 16 bits */
+#define LDR_ADC_MAX_VAL           (1L << LDR_ADC_RESOLUTION) /* 16 bits */
+#define LDR_ADC_MIN_VAL           0
+
 #ifdef __cplusplus
 }
 #endif

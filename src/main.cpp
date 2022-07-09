@@ -24,6 +24,7 @@
 #include "logger.h"
 #include "rbuffer.h"
 #include "led.h"
+#include "ldr.h"
 
 /*****************************************************************************
  * Public Vars                                                               *
@@ -37,6 +38,7 @@ uint8_t data_buf[DATA_BUFFER_SIZE] = {0};
 
 rbuffer_t data_rbuffer;
 led_t rgb_led;
+ldr_t ldr;
 
 /*****************************************************************************
  * Function Prototypes                                                       *
@@ -76,10 +78,19 @@ void setup()
     }
     LOG_INFO("SETUP:LED", ">> LED driver initialized.");
     led_blink_block(&rgb_led, 10, 10, 255, 0, 0, 0, 0, 0);
+
+    LOG_INFO("SETUP:LDR", "> Init LDR driver...");
+    err = ldr_init(&ldr, LDR_PIN);
+    if (err != ERR_OK)
+    {
+        LOG_ERROR_LOCK("SETUP:LDR", ">> LDR driver init error: %d", err);
+    }
+    LOG_INFO("SETUP:LDR", ">> LDR driver initialized.");
 }
 
 void loop() 
 {
+
 }
 
 /* --- Private functions --------------------------------------------------- */
