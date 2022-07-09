@@ -79,7 +79,7 @@ int ldr_init (ldr_t * ldr, uint8_t pin);
  * @param raw_val 
  * @return int 
  */
-int ldr_get_raw_intensity (ldr_t * ldr, uint32_t * raw_val);
+int ldr_read_raw_intensity (ldr_t * ldr, uint32_t * raw_val);
 
 /**
  * @brief Returns the calibrated measured LUX value.
@@ -88,7 +88,7 @@ int ldr_get_raw_intensity (ldr_t * ldr, uint32_t * raw_val);
  * @param lux_val 
  * @return int 
  */
-int ldr_get_lux (ldr_t * ldr, uint32_t * lux_val);
+int ldr_read_lux (ldr_t * ldr, uint32_t * lux_val);
 
 /**
  * @brief Returns the brightness state
@@ -101,7 +101,7 @@ int ldr_get_lux (ldr_t * ldr, uint32_t * lux_val);
  * @param state_val 
  * @return int 
  */
-int ldr_get_brightness_state (ldr_t * ldr, ldr_light_state_t * state_val);
+int ldr_read_brightness_state (ldr_t * ldr, ldr_light_state_t * state_val);
 
 #ifdef __cplusplus
 }

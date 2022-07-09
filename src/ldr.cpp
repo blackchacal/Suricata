@@ -81,7 +81,7 @@ int ldr_init (ldr_t * ldr, uint8_t pin)
 /**
  * @brief Returns the raw intensity value from the ADC.
  */
-int ldr_get_raw_intensity (ldr_t * ldr, uint32_t * raw_val)
+int ldr_read_raw_intensity (ldr_t * ldr, uint32_t * raw_val)
 {
     int err = ERR_OK;
 #if LDR_EN == 1    
@@ -103,7 +103,7 @@ int ldr_get_raw_intensity (ldr_t * ldr, uint32_t * raw_val)
 /**
  * @brief Returns the calibrated measured LUX value.
  */
-int ldr_get_lux (ldr_t * ldr, uint32_t * lux_val)
+int ldr_read_lux (ldr_t * ldr, uint32_t * lux_val)
 {
     int err = ERR_OK;
 #if LDR_EN == 1   
@@ -114,7 +114,7 @@ int ldr_get_lux (ldr_t * ldr, uint32_t * lux_val)
     }
     else
     {
-        ldr_get_raw_intensity (ldr, &ldr->adc_val);
+        ldr_read_raw_intensity (ldr, &ldr->adc_val);
         ldr->lux_val = (uint32_t)(LUX_CALIB_SCALAR * pow(ldr->adc_val, LUX_CALIB_EXP));
         *lux_val = ldr->lux_val;
     }
@@ -126,7 +126,7 @@ int ldr_get_lux (ldr_t * ldr, uint32_t * lux_val)
 /**
  * @brief Returns the brightness state
  */
-int ldr_get_brightness_state (ldr_t * ldr, ldr_light_state_t * state_val)
+int ldr_read_brightness_state (ldr_t * ldr, ldr_light_state_t * state_val)
 {
     int err = ERR_OK;
 #if LDR_EN == 1    
@@ -137,7 +137,7 @@ int ldr_get_brightness_state (ldr_t * ldr, ldr_light_state_t * state_val)
     }
     else
     {
-        ldr_get_raw_intensity (ldr, &ldr->adc_val);
+        ldr_read_raw_intensity (ldr, &ldr->adc_val);
         ldr->state_val = ldr_convert_raw_to_state(ldr->adc_val);
         *state_val = ldr->state_val;
     }
