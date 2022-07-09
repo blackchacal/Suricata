@@ -114,7 +114,7 @@ int ldr_get_lux (ldr_t * ldr, uint32_t * lux_val)
     }
     else
     {
-        ldr->adc_val = analogRead(ldr->pin);
+        ldr_get_raw_intensity (ldr, &ldr->adc_val);
         ldr->lux_val = (uint32_t)(LUX_CALIB_SCALAR * pow(ldr->adc_val, LUX_CALIB_EXP));
         *lux_val = ldr->lux_val;
     }
@@ -137,7 +137,7 @@ int ldr_get_brightness_state (ldr_t * ldr, ldr_light_state_t * state_val)
     }
     else
     {
-        ldr->adc_val = analogRead(ldr->pin);
+        ldr_get_raw_intensity (ldr, &ldr->adc_val);
         ldr->state_val = ldr_convert_raw_to_state(ldr->adc_val);
         *state_val = ldr->state_val;
     }
