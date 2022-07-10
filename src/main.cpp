@@ -25,6 +25,7 @@
 #include "rbuffer.h"
 #include "led.h"
 #include "ldr.h"
+#include "mic.h"
 
 /*****************************************************************************
  * Public Vars                                                               *
@@ -39,6 +40,14 @@ uint8_t data_buf[DATA_BUFFER_SIZE] = {0};
 rbuffer_t data_rbuffer;
 led_t rgb_led;
 ldr_t ldr;
+mic_t mic;
+
+double vrms = 0;
+double vrms_sum = 0;
+float v = 0;
+double sample_count = 0;
+double vavg = 0;
+double vavg_sum = 0;
 
 /*****************************************************************************
  * Function Prototypes                                                       *
@@ -86,6 +95,14 @@ void setup()
         LOG_ERROR_LOCK("SETUP:LDR", ">> LDR driver init error: %d", err);
     }
     LOG_INFO("SETUP:LDR", ">> LDR driver initialized.");
+
+    LOG_INFO("SETUP:MIC", "> Init MIC driver...");
+    err = mic_init(&mic, MIC_PIN);
+    if (err != ERR_OK)
+    {
+        LOG_ERROR_LOCK("SETUP:MIC", ">> MIC driver init error: %d", err);
+    }
+    LOG_INFO("SETUP:MIC", ">> MIC driver initialized.");
 }
 
 void loop() 

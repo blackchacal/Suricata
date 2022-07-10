@@ -70,6 +70,14 @@ extern "C" {
 #define LDR_ADC_MAX_VAL           (1L << LDR_ADC_RESOLUTION) /* 16 bits */
 #define LDR_ADC_MIN_VAL           0
 
+/* --- MIC Driver Module --------------------------------------------------- */
+
+#define MIC_EN                    1
+#define MIC_PIN                   14
+#define MIC_ADC_RESOLUTION        12 /* 16 bits */
+#define MIC_ADC_MAX_VAL           (1L << MIC_ADC_RESOLUTION) /* 16 bits */
+#define MIC_ADC_MIN_VAL           0
+
 #ifdef __cplusplus
 }
 #endif
