@@ -78,6 +78,12 @@ extern "C" {
 #define MIC_ADC_MAX_VAL           (1L << MIC_ADC_RESOLUTION) /* 16 bits */
 #define MIC_ADC_MIN_VAL           0
 
+/* --- DHT20 Temperature & Humidity Module --------------------------------------------------- */
+
+#define DHT20_EN                    1
+#define DHT20_SDA_PIN               18
+#define DHT20_SCL_PIN               19
+
 #ifdef __cplusplus
 }
 #endif

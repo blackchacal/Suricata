@@ -16,6 +16,8 @@
  * Includes                                                                  *
  *****************************************************************************/
 
+/* --- Standard libraries -------------------- */
+
 /* --- Arduino libraries -------------------- */
 #include <Arduino.h>
 
@@ -26,6 +28,7 @@
 #include "led.h"
 #include "ldr.h"
 #include "mic.h"
+#include "sdht20.h"
 
 /*****************************************************************************
  * Public Vars                                                               *
@@ -41,13 +44,8 @@ rbuffer_t data_rbuffer;
 led_t rgb_led;
 ldr_t ldr;
 mic_t mic;
-
-double vrms = 0;
-double vrms_sum = 0;
-float v = 0;
-double sample_count = 0;
-double vavg = 0;
-double vavg_sum = 0;
+DHT20 DHT(&Wire);
+dht20_t dht20;
 
 /*****************************************************************************
  * Function Prototypes                                                       *
@@ -103,11 +101,27 @@ void setup()
         LOG_ERROR_LOCK("SETUP:MIC", ">> MIC driver init error: %d", err);
     }
     LOG_INFO("SETUP:MIC", ">> MIC driver initialized.");
+
+    LOG_INFO("SETUP:DHT20", "> Init DHT20 driver...");
+    err = dht20_init(&dht20, DHT20_SDA_PIN, DHT20_SCL_PIN);
+    if (err != ERR_OK)
+    {
+        LOG_ERROR_LOCK("SETUP:DHT20", ">> DHT20 driver init error: %d", err);
+    }
+    LOG_INFO("SETUP:DHT20", ">> DHT20 driver initialized.");
 }
 
 void loop() 
 {
+    float humidity;
+    float temperature;
 
+    dht20_read_humidity(&dht20, &humidity);
+    dht20_read_temperature(&dht20, &temperature);
+
+    LOG_INFO("LOOP:DHT20", "DHT20 data, temp: %s ºC, hum: %s %RH\n", String(temperature, 1).c_str(), String(humidity, 1).c_str());
+
+    delay(1000);
 }
 
 /* --- Private functions --------------------------------------------------- */
