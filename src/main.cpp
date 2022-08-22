@@ -115,11 +115,23 @@ void loop()
 {
     float humidity;
     float temperature;
+    uint32_t ldr_raw;
+    uint32_t ldr_lux;
+    uint32_t mic_raw;
+    uint8_t mic_db;
 
     dht20_read_humidity(&dht20, &humidity);
     dht20_read_temperature(&dht20, &temperature);
+    mic_read_raw_intensity(&mic, &mic_raw);
+    mic_read_db(&mic, &mic_db);
+    ldr_read_raw_intensity(&ldr, &ldr_raw);
+    ldr_read_lux(&ldr, &ldr_lux);
 
-    LOG_INFO("LOOP:DHT20", "DHT20 data, temp: %s ºC, hum: %s %RH\n", String(temperature, 1).c_str(), String(humidity, 1).c_str());
+    LOG_INFO("LOOP:DHT20", "DHT20 data, temp: %s ºC, hum: %s %RH", String(temperature, 1).c_str(), String(humidity, 1).c_str());
+    LOG_INFO("LOOP:MIC", "Audio intensity raw: %d, dB: %d dB", mic_raw, mic_db);
+    LOG_INFO("LOOP:LDR", "Light intensity raw: %d, lux: %d lux\n", ldr_raw, ldr_lux);
+
+    led_blink(&rgb_led, 1, 0, 0x0f, 0x00, 0x00, 0x00, 0x0f, 0x00);
 
     delay(1000);
 }
