@@ -1,11 +1,11 @@
 /*****************************************************************************
  *                                                                           *
- * \file ldr.c                                                               *
+ * \file batt.c                                                              *
  *                                                                           *
- * \brief LDR driver module.                                                 *
+ * \brief Battery level module.                                              *
  *                                                                           *
  * \author blackchacal <ribeiro.tonet@gmail.com>                             *
- * \date Jul 8, 2022                                                         *
+ * \date Aug 22, 2022                                                        *
  *                                                                           *
  * \version 1.0 | \author blackchacal                                        *
  * File creation.                                                            *
@@ -20,15 +20,12 @@
 
 #include <Arduino.h>
 
-#include "ldr.h"
+#include "batt.h"
 #include "logger.h"
 
 /*****************************************************************************
  * Macros                                                                    *    
  *****************************************************************************/
-
-#define LUX_CALIB_SCALAR    (21359957977)
-#define LUX_CALIB_EXP       (-2.012)
 
 /*****************************************************************************
  * Static Data                                                               *
@@ -38,110 +35,126 @@
  * Public Data                                                               *
  *****************************************************************************/
 
-extern ldr_t ldr;
+extern batt_t batt;
 
 /*****************************************************************************
  * Private Function Prototypes                                               *
  *****************************************************************************/
-
-ldr_light_state_t ldr_convert_raw_to_state (uint32_t raw_val);
 
 /*****************************************************************************
  * Public Functions                                                          *
  *****************************************************************************/            
 
 /**
- * @brief Initializes the LDR driver module.
+ * @brief Initializes the Battery Level module.
  */
-int ldr_init (ldr_t * ldr, uint8_t pin)
+int batt_init (batt_t * batt, uint8_t pin)
 {
     int err = ERR_OK;
-#if LDR_EN == 1    
+#if BATT_EN == 1    
 
-    if (ldr == NULL)
+    if (batt == NULL)
     {
-        err = ERR_LDR_NULL_POINTER;
+        err = ERR_BATT_NULL_POINTER;
     }
     else
     {
-        ldr->pin = pin;
-        ldr->adc_val = 0;
-        ldr->lux_val = 0;
+        batt->pin = pin;
+        batt->raw_level = 0;
+        batt->level = 0;
+        batt->prev_level = 0;
+    }
+#endif
+    return err;
+}
 
-        /* Set ADC resolution to support 16-bits 
-         * Depending on the hw the resolution will be limited to max hw 
-         * capabilities.
+/**
+ * @brief Returns the battery level value from ADC.
+ */
+int batt_read_raw_level (batt_t * batt, int * raw_level)
+{
+    int err = ERR_OK;
+#if BATT_EN == 1    
+
+    if (batt == NULL)
+    {
+        err = ERR_BATT_NULL_POINTER;
+    }
+    else
+    {
+        batt->raw_level = analogRead(batt->pin);
+        *raw_level = batt->raw_level;
+    }
+#endif
+    return err;
+}
+
+/**
+ * @brief Returns the battery level in percentage (0-100).
+ */
+int batt_read_level (batt_t * batt, uint8_t * level)
+{
+    int err = ERR_OK;
+#if BATT_EN == 1    
+
+    if (batt == NULL)
+    {
+        err = ERR_BATT_NULL_POINTER;
+    }
+    else
+    {
+        /**
+         * The Battery level is measured with a voltage divider, 100k / 39k:
+         *          
+         *    Batt Voltage
+         *        |
+         *    R1 | | 100k
+         *        |_________ Batt Level (to ADC)
+         *        |
+         *    R2 | | 39k
+         *        |
+         *       _|_
+         *       \_/ GND
+         * 
+         * Assuming an Arduino pin internal resistor of ~32k powered at 3.3V,
+         * we have the following range:
+         *   
+         *                         Batt(V)    Level(V)     ADC (10-bit)    ADC (12-bit)    ADC (16-bit)
+         * Discharged (0%):         3.0V   ->  0.446V   ->     139      ->     554      ->     8858
+         * Low (10%):               3.2V   ->  0.476V   ->     148      ->     591      ->     9453
+         * Fully Charged (100%):    4.2V   ->  0.625V   ->     194      ->     776      ->     12412
          */
-        // analogReadResolution(LDR_ADC_RESOLUTION);
+        // 0.842 - 261 / 1.2 - 372
+        int battRaw = analogRead(batt->pin);
+        int batteryLevel = map(battRaw, 260, 370, 0, 100);
+        // int batteryLevel = map(battRaw, 130, 190, 0, 100);
+        batt->prev_level = batt->level;
+        batt->level = (uint8_t)batteryLevel;
+        *level = batt->level;
     }
 #endif
     return err;
 }
 
 /**
- * @brief Returns the raw intensity value from the ADC.
+ * @brief Checks if battery level changed.
  */
-int ldr_read_raw_intensity (ldr_t * ldr, uint32_t * raw_val)
+int batt_is_level_changed (batt_t * batt, uint8_t * level)
 {
     int err = ERR_OK;
-#if LDR_EN == 1    
+#if BATT_EN == 1    
 
-    if (ldr == NULL)
+    if (batt == NULL)
     {
-        err = ERR_LDR_NULL_POINTER;
+        err = ERR_BATT_NULL_POINTER;
     }
     else
     {
-        ldr->adc_val = analogRead(ldr->pin);
-        *raw_val = ldr->adc_val;
+        uint8_t new_level;
+        batt_read_level(batt, &new_level);
+        *level = new_level;
+        return (batt->level != batt->prev_level);
     }
-
-#endif
-    return err;
-}
-
-/**
- * @brief Returns the calibrated measured LUX value.
- */
-int ldr_read_lux (ldr_t * ldr, uint32_t * lux_val)
-{
-    int err = ERR_OK;
-#if LDR_EN == 1   
-
-    if (ldr == NULL)
-    {
-        err = ERR_LDR_NULL_POINTER;
-    }
-    else
-    {
-        ldr_read_raw_intensity (ldr, &ldr->adc_val);
-        ldr->lux_val = (uint32_t)(LUX_CALIB_SCALAR * pow(ldr->adc_val, LUX_CALIB_EXP));
-        *lux_val = ldr->lux_val;
-    }
-
-#endif
-    return err;
-}
-
-/**
- * @brief Returns the brightness state
- */
-int ldr_read_brightness_state (ldr_t * ldr, ldr_light_state_t * state_val)
-{
-    int err = ERR_OK;
-#if LDR_EN == 1    
-    
-    if (ldr == NULL)
-    {
-        err = ERR_LDR_NULL_POINTER;
-    }
-    else
-    {
-        ldr_read_raw_intensity (ldr, &ldr->adc_val);
-        ldr->state_val = ldr_convert_raw_to_state(ldr->adc_val);
-        *state_val = ldr->state_val;
-    }
-
 #endif
     return err;
 }
@@ -149,10 +162,5 @@ int ldr_read_brightness_state (ldr_t * ldr, ldr_light_state_t * state_val)
 /*****************************************************************************
  * Private Functions                                                         *
  *****************************************************************************/
-
-ldr_light_state_t ldr_convert_raw_to_state (uint32_t raw_val)
-{
-    return (ldr_light_state_t)((-((float)N_STATES / (float)LDR_ADC_MAX_VAL)) * raw_val + N_STATES);
-}
 
 /* end of file */

@@ -29,6 +29,8 @@
 #include "ldr.h"
 #include "mic.h"
 #include "sdht20.h"
+#include "batt.h"
+#include "ble.h"
 
 /*****************************************************************************
  * Public Vars                                                               *
@@ -46,6 +48,8 @@ ldr_t ldr;
 mic_t mic;
 DHT20 DHT(&Wire);
 dht20_t dht20;
+batt_t batt;
+ble_t ble;
 
 /*****************************************************************************
  * Function Prototypes                                                       *
@@ -59,7 +63,7 @@ void setup()
 {
     int err = ERR_OK;
 
-    delay(5000);
+    delay(2000);
     /* Init log system */
     LOG_INIT();
 
@@ -109,6 +113,22 @@ void setup()
         LOG_ERROR_LOCK("SETUP:DHT20", ">> DHT20 driver init error: %d", err);
     }
     LOG_INFO("SETUP:DHT20", ">> DHT20 driver initialized.");
+    
+    LOG_INFO("SETUP:BATT", "> Init Battery Level module...");
+    err = batt_init(&batt, BATT_LEVEL_PIN);
+    if (err != ERR_OK)
+    {
+        LOG_ERROR_LOCK("SETUP:BATT", ">> Battery Level module init error: %d", err);
+    }
+    LOG_INFO("SETUP:BATT", ">> Battery Level module initialized.");
+    
+    LOG_INFO("SETUP:BLE", "> Init BLE module...");
+    err = ble_init(&ble);
+    if (err != ERR_OK)
+    {
+        LOG_ERROR_LOCK("SETUP:BLE", ">> BLE module init error: %d", err);
+    }
+    LOG_INFO("SETUP:BLE", ">> BLE module initialized.");
 }
 
 void loop() 
@@ -119,6 +139,11 @@ void loop()
     uint32_t ldr_lux;
     uint32_t mic_raw;
     uint8_t mic_db;
+    int batt_raw;
+    uint8_t batt_level;
+
+    /* Process BLE events */
+    ble_process(&ble);
 
     dht20_read_humidity(&dht20, &humidity);
     dht20_read_temperature(&dht20, &temperature);
@@ -126,10 +151,13 @@ void loop()
     mic_read_db(&mic, &mic_db);
     ldr_read_raw_intensity(&ldr, &ldr_raw);
     ldr_read_lux(&ldr, &ldr_lux);
+    batt_read_raw_level(&batt, &batt_raw);
+    batt_read_level(&batt, &batt_level);
 
     LOG_INFO("LOOP:DHT20", "DHT20 data, temp: %s ºC, hum: %s %RH", String(temperature, 1).c_str(), String(humidity, 1).c_str());
     LOG_INFO("LOOP:MIC", "Audio intensity raw: %d, dB: %d dB", mic_raw, mic_db);
-    LOG_INFO("LOOP:LDR", "Light intensity raw: %d, lux: %d lux\n", ldr_raw, ldr_lux);
+    LOG_INFO("LOOP:LDR", "Light intensity raw: %d, lux: %d lux", ldr_raw, ldr_lux);
+    LOG_INFO("LOOP:BATT", "Battery raw: %d, level: %d%\n", batt_raw, batt_level);
 
     led_blink(&rgb_led, 1, 0, 0x0f, 0x00, 0x00, 0x00, 0x0f, 0x00);
 

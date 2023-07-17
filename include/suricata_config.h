@@ -65,7 +65,7 @@ extern "C" {
 /* --- LDR Driver Module --------------------------------------------------- */
 
 #define LDR_EN                    1
-#define LDR_PIN                   15
+#define LDR_PIN                   A1
 #define LDR_ADC_RESOLUTION        16 /* 16 bits */
 #define LDR_ADC_MAX_VAL           (1L << LDR_ADC_RESOLUTION) /* 16 bits */
 #define LDR_ADC_MIN_VAL           0
@@ -73,16 +73,26 @@ extern "C" {
 /* --- MIC Driver Module --------------------------------------------------- */
 
 #define MIC_EN                    1
-#define MIC_PIN                   14
+#define MIC_PIN                   A0
 #define MIC_ADC_RESOLUTION        12 /* 16 bits */
 #define MIC_ADC_MAX_VAL           (1L << MIC_ADC_RESOLUTION) /* 16 bits */
 #define MIC_ADC_MIN_VAL           0
 
-/* --- DHT20 Temperature & Humidity Module --------------------------------------------------- */
+/* --- DHT20 Temperature & Humidity Module --------------------------------- */
 
 #define DHT20_EN                    1
 #define DHT20_SDA_PIN               18
 #define DHT20_SCL_PIN               19
+
+/* --- Battery Level Module ------------------------------------------------ */
+
+#define BATT_EN                      1
+#define BATT_LEVEL_PIN               A2
+
+/* --- BLE Module --------------------------------------------------- */
+
+#define BLE_EN                      1
+#define BLE_LOCAL_NAME              "Suricata"
 
 #ifdef __cplusplus
 }

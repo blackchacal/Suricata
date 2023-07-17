@@ -73,7 +73,7 @@ int mic_init (mic_t * mic, uint8_t pin)
          * Depending on the hw the resolution will be limited to max hw 
          * capabilities.
          */
-        analogReadResolution(MIC_ADC_RESOLUTION);
+        // analogReadResolution(MIC_ADC_RESOLUTION);
     }
 #endif
     return err;
