@@ -40,10 +40,19 @@ extern ble_t ble;
 
 /* --- Battery Service & Characteristics ----------------------------------- */
 
- /* Bluetooth® Low Energy Battery Service */
+/* Bluetooth® Battery Service */
 BLEService batteryService("180F");
 /* Bluetooth® Low Energy Battery Level Characteristic */
 BLEUnsignedCharCharacteristic batteryLevelChar("2A19", BLERead | BLENotify);
+
+/* Bluetooth® Device Information Service */
+BLEService DeviceInfoService("180A");
+/* Bluetooth® Manufacturer Name String Characteristic */
+BLEStringCharacteristic ManufacturerNameChar("2A29", BLERead, 11);
+/* Bluetooth® Hardware Revision String Characteristic */
+BLEStringCharacteristic HardwareRevisionChar("2A27", BLERead, 4);
+/* Bluetooth® Firmware Revision String Characteristic */
+BLEStringCharacteristic FirmwareRevisionChar("2A26", BLERead, 6);
 
 /*****************************************************************************
  * Private Function Prototypes                                               *
@@ -83,6 +92,19 @@ int ble_init (ble_t * ble)
             batteryService.addCharacteristic(batteryLevelChar); 
             BLE.addService(batteryService);
             batteryLevelChar.writeValue(0);
+
+            BLE.setAdvertisedService(DeviceInfoService);
+            DeviceInfoService.addCharacteristic(ManufacturerNameChar); 
+            DeviceInfoService.addCharacteristic(HardwareRevisionChar); 
+            DeviceInfoService.addCharacteristic(FirmwareRevisionChar); 
+            BLE.addService(DeviceInfoService);
+            ManufacturerNameChar.writeValue("BlackChacal");
+            char hw_version[4] = {0};
+            char fw_version[6] = {0};
+            sprintf(hw_version, "%d.%d", HW_MAJOR, HW_MINOR);
+            sprintf(fw_version, "%d.%d.%d", FW_MAJOR, FW_MINOR, FW_PATCH);
+            HardwareRevisionChar.writeValue(hw_version);
+            FirmwareRevisionChar.writeValue(fw_version);
 
             BLE.advertise();
         }
